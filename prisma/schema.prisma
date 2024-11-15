@@ -1,0 +1,86 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Patient {
+  id                  String    @id @default(uuid())
+  numeroPatient       String    @unique
+  nom                 String
+  prenom             String
+  telephone          String?
+  email              String?
+  ville              String?
+  cin                String?
+  dateNaissance      DateTime?
+  mutuelleActive     Boolean   @default(false)
+  mutuelleName       String?
+  antecedents        Antecedent[]
+  consultations      Consultation[]
+  documents          Document[]
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  encryptedData      String?   // Pour les données sensibles supplémentaires
+}
+
+model Antecedent {
+  id          String   @id @default(uuid())
+  description String
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  patientId   String
+  createdAt   DateTime @default(now())
+}
+
+model Consultation {
+  id            String   @id @default(uuid())
+  patient       Patient  @relation(fields: [patientId], references: [id])
+  patientId     String
+  date          DateTime
+  type          String
+  montant       Decimal
+  statut        String
+  paiement      Paiement?
+  notes         String?  // Chiffré
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Paiement {
+  id             String       @id @default(uuid())
+  consultation   Consultation @relation(fields: [consultationId], references: [id])
+  consultationId String       @unique
+  montant        Decimal
+  typePaiement   String
+  datePaiement   DateTime
+  createdAt      DateTime     @default(now())
+}
+
+model Document {
+  id          String   @id @default(uuid())
+  patient     Patient  @relation(fields: [patientId], references: [id])
+  patientId   String
+  type        String
+  nom         String
+  contenu     String   // Chiffré
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  id              String    @id @default(uuid())
+  username        String    @unique
+  passwordHash    String
+  role            String
+  name            String
+  specialite      String?
+  failedAttempts  Int       @default(0)
+  isBlocked       Boolean   @default(false)
+  lastLogin       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
